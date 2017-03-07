@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>Fusion Tables layers</title>
+    <title>Southwestern Turf Information System</title>
     <style>
         /* Always set the map height explicitly to define the size of the div
          * element that contains the map. */
@@ -22,81 +22,7 @@
 <div id="map"></div>
 <script src="FusionTableMaps.js"></script>
 <script type="text/javascript">
-    function initMap() {
-        var map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: 47.4498756, lng: -99.1686378},
-            zoom: 7
-        });
-        var infoWindow = new google.maps.InfoWindow();
-
-       /* // Initialize the first layer
-        var CountyLayer = new google.maps.FusionTablesLayer({
-            query: {
-                select: 'geometry',
-                from: '196LqydLhOq1Wl9612hNhcGoh4vUmRjTaiFvDhA',
-                where: " 'state abbr' LIKE 'ca'"
-            },
-            map: map,
-            suppressInfoWindows: true
-        });
-        CountyLayer.addListener( 'click', function(e) {
-            windowControl(e, infoWindow, map);
-        });
-*/
-        // Open the info window at the clicked location
-
-
-
-        var ZIPLayer = new google.maps.FusionTablesLayer({
-            query: {
-                select: 'geometry',
-                from: '1ncnLYkOUgr9qkI7RYNcmvJH0ThkqdcaSpRAIBvIf',
-                where: " 'state' LIKE 'ND'"
-            },
-            map: map,
-            suppressInfoWindows: true
-        });
-        google.maps.event.addListener(ZIPLayer, 'click', function(e) {
-            windowControl(e, infoWindow, map);
-        });
-        function windowControl(e, infoWindow, map) {
-            columnArray=['ZIP', 'county', 'population'];
-            infoWindowHtml = buildInfoContent(e,columnArray);
-            infoWindow.setOptions({
-                content: infoWindowHtml,
-                position: e.latLng,
-                pixelOffset: e.pixelOffset
-            });
-
-            infoWindow.open(map);
-        }
-        function buildInfoContent(e,columnArray) {
-            infoContent="";
-            for (var column = 0; column < columnArray.length; column++) {
-                alert(columnArray[column]+": "+e.row[columnArray[column]].value);
-               // +e.row[columnArray[column]]
-                infoContent+=columnArray[column]+": "+e.row[columnArray[column]].value+"<br>";
-                //Do something
-            }
-            return infoContent;
-        }
-/*
-        // Initialize the second layer
-        var POILayer = new google.maps.FusionTablesLayer({
-            query: {
-                select: "'Full Address'",
-                from: '1tL67aacGcCyMfAg9PUo_-gp4qm74GDtFiCMtFg',
-                where: "'COUNTY_NAME' LIKE 'MODOC'"
-            },
-            map: map,
-            suppressInfoWindows: true
-        });
-        google.maps.event.addListener(POILayer, 'click', function(e) {
-            windowControl(e, infoWindow, map);
-        });*/
-
-       //google.maps.event.addDomListener(window, 'load', initialize);
-    }
+initMap()
 </script>
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_DpKuwQ8Xq7_Wcn9kUQdALSGGIorGKq0&callback=initMap">
