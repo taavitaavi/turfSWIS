@@ -10,7 +10,37 @@
 
     <div id="map" class="gmap"></div>
 
-    <ul id="sidebar" ></ul>
+    <div id="sidebar" >
+        <form id="Layers">
+            <div>
+                <p><input type="checkbox" onchange='layerCheckBoxlistener(this)' name="LayerBox"/>FusionTable Data</p>
+                <div id="Layer1" class="label">
+                    <p>&#x21C5</p>
+                </div>
+                <div id="fusionTableColumns" class="elements">
+
+                </div>
+            </div>
+            <div>
+                <p><input type="checkbox" onchange='layerCheckBoxlistener(this)' name="LayerBox"/>School Districts</p>
+                <div id="Layer2" class="label">
+                    <p>&#x21C5</p>
+
+                </div>
+                <div id="schoolList" class="elements">
+                    <input type="checkbox" name="box1" /> - box one<br />
+                    <input type="checkbox" name="box1" /> - box one<br />
+                    <input type="checkbox" name="box1" /> - box one<br />
+                    <input type="checkbox" name="box1" /> - box one<br />
+                    <input type="checkbox" name="box1" /> - box one<br />
+
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+
 <script src="FusionTableMaps.js"></script>
 <script type="text/javascript">
     initSidebar();

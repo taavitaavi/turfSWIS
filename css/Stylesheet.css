@@ -17,6 +17,16 @@
 #sidebar{
     width:23%;
     float:left;
+    display: table-column;
+}
+
+.label
+{
+    width: 100%;
+    display: none;
+    background-color: #ccccff;
+    text-align: center;
+    border: 1px solid #0f0f0f;
 }
 
 /* Optional: Makes the sample page fill the window. */
