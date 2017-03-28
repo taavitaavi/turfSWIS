@@ -2,10 +2,11 @@
  * Created by taavi on 3/7/2017.
  */
 
-
-
-
-
+var map = null;
+var ZIPLayer=null;
+var SchoolDistrictLayer=null;
+var CountyLayer= null;
+var geoJson;
 var fusionTableDataGroup="fusionTableData";
 
 function initSidebar(){
@@ -56,19 +57,20 @@ function collapseLayers(){
 
 }
 
-function layerCheckBoxlistener(checkbox){
+function layerCheckBoxlistener(checkbox,layer){
 
     if(checkbox.checked == true){
-        enableLayer(checkbox);
+        enableLayer(checkbox,layer);
     }else{
-        disableLayer(checkbox);
+        disableLayer(checkbox,layer);
 
     }
 
 }
-function disableLayer(checkbox){
+function disableLayer(checkbox,layer){
 
     console.log("disableLayer");
+    layer.setMap(null);
     var parent = checkbox.parentNode.parentNode;
     var target = parent.getElementsByTagName("div")[0];
     //var target = parent.getElementsByClassName("label");
@@ -78,8 +80,9 @@ function disableLayer(checkbox){
 
 }
 
-function enableLayer(checkbox){
+function enableLayer(checkbox,layer){
     console.log("enableLayer");
+    layer.setMap(map);
     var parent = checkbox.parentNode.parentNode;
     var target = parent.getElementsByTagName("div")[0];
     //var target = parent.getElementsByClassName("label");
@@ -107,13 +110,13 @@ function switchDisplay() {
 
 //////////Initializing map
 function initMap() {
-    var map = new google.maps.Map(document.getElementById('map'), {
+     map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: 47.4498756, lng: -99.1686378},
         zoom: 7
     });
 
     var infoWindow = new google.maps.InfoWindow();
-    var ZIPLayer = new google.maps.FusionTablesLayer({
+    ZIPLayer = new google.maps.FusionTablesLayer({
         query: {
             select: 'geometry',
             from: '1ncnLYkOUgr9qkI7RYNcmvJH0ThkqdcaSpRAIBvIf',
@@ -122,10 +125,59 @@ function initMap() {
         map: map,
         suppressInfoWindows: true
     });
+    disableLayer(document.getElementById('FusionTableLayerCheckbox'),ZIPLayer);
+
     google.maps.event.addListener(ZIPLayer, 'click', function(e) {
         windowControl(e, infoWindow, map);
     });
     //google.maps.event.addDomListener(window, 'load', initialize);
+
+    CountyLayer = new google.maps.FusionTablesLayer({
+        query: {
+            select: 'geometry',
+            from: '1xdysxZ94uUFIit9eXmnw1fYc6VcQiXhceFd_CVKa',
+            where: " 'State Abbr' LIKE 'ND'"
+        },
+        map: map,
+        suppressInfoWindows: true
+    });
+    disableLayer(document.getElementById('CountyLayerCheckBox'),CountyLayer);
+
+    google.maps.event.addListener(CountyLayer, 'click', function(e) {
+        windowControl(e, infoWindow, map);
+    });
+
+    var imageBounds = {
+        north: 40.773941,
+        south: 40.712216,
+        east: -74.12544,
+        west: -74.22655
+    };
+    SchoolDistrictLayer= new google.maps.GroundOverlay(
+        'https://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
+        imageBounds);
+    SchoolDistrictLayer.setMap(map);
+    var schoolDistrictBoundaries=map.data.loadGeoJson(
+        'ND_highschools.geojson');
+    /*schoolDistrictBoundaries.setStyle(function (feature) {
+        console.log(feature.getProperty('schnam'));
+
+        var color = feature.getProperty('fillColor');
+        return {
+            fillColor: color,
+            strokeWeight: 1
+        };
+    });*/
+/* var geoJson;
+    SchoolDistrictLayer = map.data.loadGeoJson(
+        'ND_highschools.geojson');
+    SchoolDistrictLayer= new google.maps.
+    google.maps.event.addListener(SchoolDistrictLayer, 'click', function(e) {
+        windowControl(e, infoWindow, map);
+    });
+*/
+
+    //google.maps.event.addDomListener(window, 'load', initialize)
 }
 
 

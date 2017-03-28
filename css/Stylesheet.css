@@ -4,6 +4,7 @@
 #map {
     height: 100%;
     width: 100%;
+    insert new comment
 }*/
 
 #map{
@@ -12,6 +13,7 @@
     position: absolute;
     top: 0px;
     right: 0px;
+
 
 }
 #sidebar{
