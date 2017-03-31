@@ -13,7 +13,7 @@
     <div id="sidebar" >
         <form id="Layers">
             <div>
-                <p><input type="checkbox" id="FusionTableLayerCheckbox"onchange='layerCheckBoxlistener(this,ZIPLayer)' name="LayerBox"/>FusionTable Data</p>
+                <p><input type="checkbox" id="FusionTableLayerCheckbox"onchange='layerCheckBoxlistener(this,ZIPLayer)' name="LayerBox"/>Zip Code Data</p>
                 <div id="Layer1" class="label">
                     <p>&#x21C5</p>
                 </div>
@@ -22,23 +22,29 @@
                 </div>
             </div>
             <div>
-                <p><input type="checkbox" onchange='layerCheckBoxlistener(this,SchoolDistrictLayer)' name="LayerBox"/>School Districts</p>
+                <p><input type="checkbox" onchange='layerCheckBoxlistener(this,HighSchoolDistrictLayer)' name="LayerBox"/>High School Districts</p>
                 <div id="Layer2" class="label">
                     <p>&#x21C5</p>
 
                 </div>
-                <div id="schoolList" class="elements">
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
+            </div>
+            <div>
+                <p><input type="checkbox" onchange='layerCheckBoxlistener(this,MiddleSchoolDistrictLayer)' name="LayerBox"/>Middle School Districts</p>
+                <div id="Layer3" class="label">
+                    <p>&#x21C5</p>
+
+                </div>
+            </div>
+            <div>
+                <p><input type="checkbox" onchange='layerCheckBoxlistener(this,ElementarySchoolDistrictLayer)' name="LayerBox"/>Elementary School Districts</p>
+                <div id="Layer4" class="label">
+                    <p>&#x21C5</p>
 
                 </div>
             </div>
             <div>
                 <p><input type="checkbox" id='CountyLayerCheckBox' onchange='layerCheckBoxlistener(this,CountyLayer)' name="LayerBox"/>Counties</p>
-                <div id="Layer2" class="label">
+                <div id="Layer5" class="label">
                     <p>&#x21C5</p>
 
                 </div>
