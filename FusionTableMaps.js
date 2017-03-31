@@ -74,7 +74,7 @@ function disableLayer(checkbox,layer){
     var parent = checkbox.parentNode.parentNode;
     var target = parent.getElementsByTagName("div")[0];
     //var target = parent.getElementsByClassName("label");
-    console.log(target);
+    //console.log(target);
     target.style.display="none";
 
 
@@ -86,7 +86,7 @@ function enableLayer(checkbox,layer){
     var parent = checkbox.parentNode.parentNode;
     var target = parent.getElementsByTagName("div")[0];
     //var target = parent.getElementsByClassName("label");
-    console.log(target);
+    //console.log(target);
     target.style.display="block";
 }
 
@@ -126,9 +126,9 @@ function initMap() {
         suppressInfoWindows: true
     });
     disableLayer(document.getElementById('FusionTableLayerCheckbox'),ZIPLayer);
-
+    checkedBoxes = getCheckedBoxes(fusionTableDataGroup);
     google.maps.event.addListener(ZIPLayer, 'click', function(e) {
-        windowControl(e, infoWindow, map);
+        WindowControl(e, infoWindow, map,'ZipLayer',checkedBoxes);
     });
     //google.maps.event.addDomListener(window, 'load', initialize);
 
@@ -143,51 +143,43 @@ function initMap() {
     });
     disableLayer(document.getElementById('CountyLayerCheckBox'),CountyLayer);
 
+
+
     google.maps.event.addListener(CountyLayer, 'click', function(e) {
-        windowControl(e, infoWindow, map);
+        WindowControl(e, infoWindow, map,'CountyLayer');
     });
 
-    var imageBounds = {
-        north: 40.773941,
-        south: 40.712216,
-        east: -74.12544,
-        west: -74.22655
-    };
-    SchoolDistrictLayer= new google.maps.GroundOverlay(
-        'https://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
-        imageBounds);
-    SchoolDistrictLayer.setMap(map);
-    var schoolDistrictBoundaries=map.data.loadGeoJson(
-        'ND_highschools.geojson');
-    /*schoolDistrictBoundaries.setStyle(function (feature) {
-        console.log(feature.getProperty('schnam'));
 
-        var color = feature.getProperty('fillColor');
-        return {
-            fillColor: color,
-            strokeWeight: 1
-        };
-    });*/
-/* var geoJson;
-    SchoolDistrictLayer = map.data.loadGeoJson(
-        'ND_highschools.geojson');
-    SchoolDistrictLayer= new google.maps.
+    SchoolDistrictLayer= new google.maps.Data();
+    SchoolDistrictLayer.loadGeoJson('ND_highschools.geojson');
+    SchoolDistrictLayer.setStyle({
+        strokeColor: 'red',
+        msoSchemeFillColor:'red',
+        strokeWeight: 1
+    });
+    columnArray=["schnam", "gslo", "gshi","stAbbrev"];
     google.maps.event.addListener(SchoolDistrictLayer, 'click', function(e) {
-        windowControl(e, infoWindow, map);
+        WindowControl(e, infoWindow, map,'SchoolDistrictLayer',columnArray);
     });
-*/
+    SchoolDistrictLayer.addListener('mouseover', function(event) {
+        SchoolDistrictLayer.revertStyle();
+        SchoolDistrictLayer.overrideStyle(event.feature, {strokeWeight: 3});
+    });
+    SchoolDistrictLayer.addListener('mouseout', function(event) {
+        SchoolDistrictLayer.revertStyle();
+    });
 
     //google.maps.event.addDomListener(window, 'load', initialize)
 }
 
 
-function windowControl(e, infoWindow, map) {
+function WindowControl(e, infoWindow, map, layer,columnArray) {
   /*  columnArray=['ZIP', 'state','County', 'population'];
 
     console.log(checkedBoxes);
     console.log(columnArray);*/
-    checkedBoxes = getCheckedBoxes(fusionTableDataGroup);
-    infoWindowHtml = buildInfoContent(e,checkedBoxes);
+
+    infoWindowHtml = buildInfoContent(e,columnArray,layer);
     infoWindow.setOptions({
         content: infoWindowHtml,
         position: e.latLng,
@@ -196,11 +188,27 @@ function windowControl(e, infoWindow, map) {
 
     infoWindow.open(map);
 }
-function buildInfoContent(e,columnArray) {
+
+function getInfo (e, layer, infoToGet) {
+    var info='';
+    switch (layer) {
+        case 'ZipLayer':
+            //console.log('layer is ziplayer');
+            info = e.row[infoToGet].value;
+            break;
+        case 'SchoolDistrictLayer':
+            info = e.feature.getProperty(infoToGet);
+            break;
+    }
+    return info;
+};
+function buildInfoContent(e, columnArray,layer) {
     infoContent=document.createElement("div");
     for (var column = 0; column < columnArray.length; column++){
+
            try {
-            node= document.createTextNode(columnArray[column]+': '+e.row[columnArray[column]].value);
+               var info= getInfo(e,layer,columnArray[column]);
+               node= document.createTextNode(columnArray[column]+': '+info);
             infoContent.appendChild(node);
             infoContent.appendChild(document.createElement("br"));
         }
