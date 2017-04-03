@@ -17,9 +17,11 @@
 
 }
 #sidebar{
-    width:23%;
+    width:20%;
+    height: 100%;
     float:left;
     display: table-column;
+    overflow-y: scroll;
 }
 
 .label
@@ -32,6 +34,7 @@
 }
 
 /* Optional: Makes the sample page fill the window. */
+
 html, body {
     height: 100%;
     margin: 0;

@@ -5,12 +5,14 @@
     <meta charset="utf-8">
     <title>Southwestern Turf Information System</title>
     <link href="css/Stylesheet.css" rel="stylesheet" type="text/css">
+
+
 </head>
 <body>
 
     <div id="map" class="gmap"></div>
 
-    <div id="sidebar" >
+    <div id="sidebar">
         <form id="Layers">
             <div>
                 <p><input type="checkbox" id="FusionTableLayerCheckbox"onchange='layerCheckBoxlistener(this,ZIPLayer)' name="LayerBox"/>Zip Code Data</p>
@@ -21,7 +23,10 @@
 
                 </div>
             </div>
+
+
             <div>
+
                 <p><input type="checkbox" onchange='layerCheckBoxlistener(this,HighSchoolDistrictLayer)' name="LayerBox"/>High School Districts</p>
                 <div id="Layer2" class="label">
                     <p>&#x21C5</p>
@@ -43,31 +48,47 @@
                 </div>
             </div>
             <div>
-                <p><input type="checkbox" id='CountyLayerCheckBox' onchange='layerCheckBoxlistener(this,CountyLayer)' name="LayerBox"/>Counties</p>
-                <div id="Layer5" class="label">
-                    <p>&#x21C5</p>
+            <p><input type="checkbox" id='CountyLayerCheckBox' onchange='layerCheckBoxlistener(this,CountyLayer)' name="LayerBox"/>Counties</p>
+            <div id="Layer5" class="label">
+                <p>&#x21C5</p>
 
-                </div>
-                <div id="countyList" class="elements">
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-                    <input type="checkbox" name="box1" /> - box one<br />
-
-                </div>
             </div>
+            <div id="countyList" class="elements">
+                <input type="checkbox" name="box1" /> - box one<br />
+
+
+            </div>
+        </div>
+        <div>
+            <p><input type="checkbox" id="PlacesLayerCheckbox" onchange='layerCheckBoxlistener(this,PlacesLayer)' name="LayerBox"/>Places</p>
+            <div id="Layer6" class="label">
+                <p>&#x21C5</p>
+            </div>
+            <div id="placesElements" class="elements">
+            <div id="placesFilters">
+                <label>Min Town Size: </label>
+                <input id="townSizeSlider" type="range" min="0" max="20000000" step="100" value="1000" onchange="updateTextInput(this.value,'minTownSizeTextInput');" /> <br />
+                <input type="text" id="minTownSizeTextInput" value="1000">
+
+            </div>
+
+            </div>
+        </div>
+
+
+
         </form>
 
     </div>
 
 
-<script src="FusionTableMaps.js"></script>
+<script src="js/FusionTableMaps.js"></script>
 <script type="text/javascript">
     initSidebar();
     initMap();
-
 </script>
+
+
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_DpKuwQ8Xq7_Wcn9kUQdALSGGIorGKq0&callback=initMap">
 </script>
