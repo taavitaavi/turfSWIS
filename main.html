@@ -13,10 +13,24 @@
     <div id="map" class="gmap"></div>
 
     <div id="sidebar">
-        <button type="button">Settings</button>
+
         <form id="Layers">
+            <?php $connection = new MongoClient(); ?>
+
             <div>
-                <p><input type="checkbox" id='CountyLayerCheckBox' onchange='layerCheckBoxlistener(this,CountyLayer)' name="LayerBox"/>Select your territory</p>
+                <p><input type="checkbox" id='TerritoryLayerCheckbox' onchange='layerCheckBoxlistener(this,TerritoryLayer)' name="LayerBox"/>SelectTerritory</p>
+                <div id="Layer7" class="label">
+                    <p>&#x21C5</p>
+
+                </div>
+                <div id="TerritoryLayerList" class="elements">
+                    <button type="button" onclick="updateLayers()">SaveTerritory</button>
+
+
+                </div>
+            </div>
+            <div>
+                <p><input type="checkbox" id='CountyLayerCheckBox' onchange='layerCheckBoxlistener(this,CountyLayer)' name="LayerBox"/>Counties</p>
                 <div id="Layer5" class="label">
                     <p>&#x21C5</p>
 
@@ -26,6 +40,7 @@
 
 
                 </div>
+            </div>
 
             <div>
                 <p><input type="checkbox" id="FusionTableLayerCheckbox"onchange='layerCheckBoxlistener(this,ZIPLayer)' name="LayerBox"/>Zip Code Data</p>
@@ -61,7 +76,6 @@
                 </div>
             </div>
 
-        </div>
         <div>
             <p><input type="checkbox" id="PlacesLayerCheckbox" onchange='layerCheckBoxlistener(this,PlacesLayer)' name="LayerBox"/>Places</p>
             <div id="Layer6" class="label">
