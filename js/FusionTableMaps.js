@@ -10,15 +10,17 @@ var ElemetarySchoolDistrictLayer=null;
 var CountyLayer= null;
 var PlacesLayer=null;
 var TerritoryLayer=null;
+var PermitsLayer=null;
 var geoJson;
 var zipCodeFusionTableDataGroup="zipcodeTableDataCheckboxGroup";
-var placesFusionTableDataGroup='placesTableDataCheckboxGroup'
+var placesFusionTableDataGroup='placesTableDataCheckboxGroup';
+var permitsFusionTableDataGroup='permitsTableDataCheckboxGroup';
 var selectedCounties=["ND-Divide", "ND-Burke", "ND-Renville", "ND-Bottineau", "ND-Rolette", "ND-Towner", "ND-Cavalier", "ND-Pembina", "MN-Kittson", "MN-Roseau", "MN-Marshall", "MN-Pennington", "MN-Red Lake", "MN-Polk", "ND-Grand Forks", "ND-Walsh", "ND-Ramsey", "ND-Nelson", "ND-Steele", "ND-Traill", "ND-Cass", "ND-Richland", "MN-Wilkin", "MN-Clay", "MN-Norman", "ND-Sargent", "ND-Ransom", "ND-Barnes", "ND-Griggs", "ND-Eddy", "ND-Benson", "ND-Pierce", "ND-McHenry", "ND-Ward", "ND-Mountrail", "ND-Williams", "ND-McKenzie", "ND-Billings", "ND-Golden Valley", "ND-Dunn", "ND-Mercer", "ND-McLean", "ND-Sheridan", "ND-Wells", "ND-Foster", "ND-Stutsman", "ND-Kidder", "ND-Burleigh", "ND-Oliver", "ND-Morton", "ND-Stark", "ND-Slope", "ND-Hettinger", "ND-Grant", "ND-Adams", "ND-Bowman", "ND-Sioux", "ND-Emmons", "ND-Logan", "ND-McIntosh", "ND-Dickey", "ND-LaMoure"];
 var SELECTEDCOUNTIES=[];
 
 function initSidebar(){
     console.log("sidebar init");
-    zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers', '3 years units per capita'];
+    zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers','2016 units'];
     //document.getElementById('').appendChild(makeCheckBoxList(zipCodeDataColumnList,zipCodeFusionTableDataGroup));
     document.getElementById('fusionTableColumns').appendChild(makeCheckBoxList(zipCodeDataColumnList,'fusionTableColumns',zipCodeFusionTableDataGroup));
 
@@ -27,7 +29,199 @@ function initSidebar(){
     collapseLayers();
 }
 
+function colorLayer(selectElement,layer){
+    console.log(selectElement.value);
+    selectElement.value;
+    applyPolygonStyle(map, layer, selectElement.value);
+    updateLegend(selectElement.value);
+}
 
+var COLUMN_STYLES = {
+    'household median income': [
+        {
+            'min': 0,
+            'max': 30000,
+            'color': '#FE7276'
+        },
+        {
+            'min': 30000,
+            'max': 45000,
+            'color': '#fec74c'
+        },
+        {
+            'min': 45000,
+            'max': 60000,
+            'color': '#2bff25'
+        },
+        {
+            'min': 60000,
+            'max': 13000000,
+            'color': '#0d77ff'
+        }
+    ],
+    'population':[
+        {
+            'min': 0,
+            'max': 1000,
+            'color': '#ffeed6'
+        },
+        {
+            'min': 1000,
+            'max': 5000,
+            'color': '#ff5e30'
+        },
+        {
+            'min': 5000,
+            'max': 10000,
+            'color': '#ff35c3'
+        },
+        {
+            'min': 10000,
+            'max': 50000,
+            'color': '#6184ff'
+        },
+        {
+            'min': 50000,
+            'max': 500000,
+            'color': '#1fff70'
+        }
+
+    ],
+    'Total population':[
+        {
+            'min': 0,
+            'max': 1000,
+            'iconName':'small_purple',
+            'color': '#ff98ff'
+
+        },
+        {
+            'min': 1000,
+            'max': 5000,
+            'iconName': 'small_green',
+            'color': '#8fea8f'
+        },
+        {
+            'min': 5000,
+            'max': 10000,
+            'iconName': 'ltblu_blank',
+            'color': '#55d8d8'
+        },
+        {
+            'min': 10000,
+            'max': 50000,
+            'iconName': 'red_blank',
+            'color': '#fc6355'
+        },
+        {
+            'min': 50000,
+            'max': 20000000,
+            'iconName': 'orange_blank',
+            'color': '#ff9d00'
+        }
+
+    ]
+
+};
+// Apply the style to the layer & generate corresponding legend
+function applyPolygonStyle(map, layer, column) {
+    var columnStyle = COLUMN_STYLES[column];
+    var styles = [];
+
+    for (var i in columnStyle) {
+        var style = columnStyle[i];
+        styles.push({
+            where: generateStyleWhere(column, style.min, style.max),
+            polygonOptions: {
+                fillColor: style.color,
+                fillOpacity: style.opacity ? style.opacity : 0.3
+            }
+
+        });
+    }
+
+    layer.set('styles', styles);
+}
+// Apply the style to the layer & generate corresponding legend
+function applyMarkerStyle(map, layer, column) {
+    var columnStyle = COLUMN_STYLES[column];
+    var styles = [];
+
+    for (var i in columnStyle) {
+        var style = columnStyle[i];
+        styles.push({
+            where: generateStyleWhere(column, style.min, style.max),
+            markerOptions: {
+                iconName: style.iconName
+            }
+
+        });
+    }
+
+    layer.set('styles', styles);
+}
+// Create the where clause
+function generateStyleWhere(columnName, low, high) {
+    var whereClause = [];
+    whereClause.push("'");
+    whereClause.push(columnName);
+    whereClause.push("' >= ");
+    whereClause.push(low);
+    whereClause.push(" AND '");
+    whereClause.push(columnName);
+    whereClause.push("' < ");
+    whereClause.push(high);
+    console.log('styling whereclause: '+whereClause);
+    return whereClause.join('');
+}
+
+// Initialize the legend
+function addLegend(map) {
+    var legendWrapper = document.createElement('div');
+    legendWrapper.id = 'legendWrapper';
+    legendWrapper.index = 1;
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(
+        legendWrapper);
+
+    legendContent(legendWrapper, 'household median income');
+}
+// Update the legend content
+function updateLegend(column) {
+    var legendWrapper = document.getElementById('legendWrapper');
+    var legend = document.getElementById('legend');
+    legendWrapper.removeChild(legend);
+    legendContent(legendWrapper, column);
+}
+// Generate the content for the legend
+function legendContent(legendWrapper, column) {
+    var legend = document.createElement('div');
+    legend.id = 'legend';
+
+    var title = document.createElement('p');
+    title.innerHTML = column;
+    legend.appendChild(title);
+
+    var columnStyle = COLUMN_STYLES[column];
+    for (var i in columnStyle) {
+        var style = columnStyle[i];
+
+        var legendItem = document.createElement('div');
+
+        var color = document.createElement('span');
+        color.setAttribute('class', 'color');
+        console.log("legend element color: "+style.color);
+        color.style.backgroundColor = style.color;
+        legendItem.appendChild(color);
+
+        var minMax = document.createElement('span');
+        minMax.innerHTML = style.min + ' - ' + style.max;
+        legendItem.appendChild(minMax);
+
+        legend.appendChild(legendItem);
+    }
+
+    legendWrapper.appendChild(legend);
+}
 
 
 function makeCheckBoxList(array,id,group) {
@@ -157,7 +351,7 @@ function initMap() {
     });
 
     var center=map.getCenter();
-
+    addLegend(map);
     var territoryPolygonBoundaries=[
         {lat: center.lat()-2,lng: center.lng()-3},
         {lat: center.lat()-2,lng: center.lng()+3},
@@ -193,10 +387,12 @@ function initMap() {
 
 
     var infoWindow = new google.maps.InfoWindow();
+    //where: whereClause
+    //19Ias72RSspPU6PIGNGwySEno7uiFvKuZ3shUfO3r
     ZIPLayer = new google.maps.FusionTablesLayer({
         query: {
             select: 'geometry',
-            from: '19Ias72RSspPU6PIGNGwySEno7uiFvKuZ3shUfO3r',
+            from: '1G_ZgBLUpZvL9riid44RvVkKyJpdF9rGeyDB1d8aW',
             where: whereClause
         },
         map: map,
@@ -373,6 +569,8 @@ function updatePlacesLayer() {
             where: where.join(' and ')
         }
     });
+    applyMarkerStyle(map,pointsLayer,'Total population');
+    updateLegend('Total population');
 }
 
 function windowControl(e, infoWindow, map, layer, columnArray) {

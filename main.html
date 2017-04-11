@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>Southwestern Turf Information System</title>
     <link href="css/Stylesheet.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 
 </head>
@@ -15,7 +16,7 @@
     <div id="sidebar">
 
         <form id="Layers">
-            <?php $connection = new MongoClient(); ?>
+
 
             <div>
                 <p><input type="checkbox" id='TerritoryLayerCheckbox' onchange='layerCheckBoxlistener(this,TerritoryLayer)' name="LayerBox"/>SelectTerritory</p>
@@ -47,7 +48,16 @@
                 <div id="Layer1" class="label">
                     <p>&#x21C5</p>
                 </div>
+
                 <div id="fusionTableColumns" class="elements">
+                    <form>
+                        <label for="colorZipLayerBy">Color by</label>
+                        <select name ="colorZipLayerBy" id="colorZipLayerBy" onchange="colorLayer(this,ZIPLayer)">
+                            <option value="population">population</option>
+                            <option value="household median income">household median income</option>
+                        </select>
+
+                    </form>
 
                 </div>
             </div>
@@ -94,6 +104,16 @@
 
             </div>
         </div>
+            <div>
+                <p><input type="checkbox" id="PermitsLayerCheckbox" onchange='layerCheckBoxlistener(this,PermitsLayer)' name="LayerBox"/>Permits</p>
+                <div id="Layer8" class="label">
+                    <p>&#x21C5</p>
+                </div>
+                <div id="PermitsElements" class="elements">
+
+
+                </div>
+            </div>
 
 
 
