@@ -18,7 +18,34 @@ var permitsFusionTableDataGroup='permitsTableDataCheckboxGroup';
 var selectedCounties=["ND-Divide", "ND-Burke", "ND-Renville", "ND-Bottineau", "ND-Rolette", "ND-Towner", "ND-Cavalier", "ND-Pembina", "MN-Kittson", "MN-Roseau", "MN-Marshall", "MN-Pennington", "MN-Red Lake", "MN-Polk", "ND-Grand Forks", "ND-Walsh", "ND-Ramsey", "ND-Nelson", "ND-Steele", "ND-Traill", "ND-Cass", "ND-Richland", "MN-Wilkin", "MN-Clay", "MN-Norman", "ND-Sargent", "ND-Ransom", "ND-Barnes", "ND-Griggs", "ND-Eddy", "ND-Benson", "ND-Pierce", "ND-McHenry", "ND-Ward", "ND-Mountrail", "ND-Williams", "ND-McKenzie", "ND-Billings", "ND-Golden Valley", "ND-Dunn", "ND-Mercer", "ND-McLean", "ND-Sheridan", "ND-Wells", "ND-Foster", "ND-Stutsman", "ND-Kidder", "ND-Burleigh", "ND-Oliver", "ND-Morton", "ND-Stark", "ND-Slope", "ND-Hettinger", "ND-Grant", "ND-Adams", "ND-Bowman", "ND-Sioux", "ND-Emmons", "ND-Logan", "ND-McIntosh", "ND-Dickey", "ND-LaMoure"];
 var SELECTEDCOUNTIES=[];
 
+function Get(yourUrl){
+    var Httpreq = new XMLHttpRequest(); // a new request
+    Httpreq.open("GET",yourUrl,false);
+    Httpreq.send(null);
+    return Httpreq.responseText;
+}
+function formatParams( params ){
+    return "?" + Object
+            .keys(params)
+            .map(function(key){
+                return key+"="+params[key]
+            })
+            .join("&")
+}
+
 function initSidebar(){
+    var update = document.getElementById('update')
+    update.addEventListener('click', function () {
+        var params = {name: "Darth Vader"};
+        var yourUrl='/quotes';
+        var url = yourUrl + formatParams(params);
+        console.log('getting json object');
+        var json_obj = JSON.parse(Get(url));
+        console.log(json_obj);
+        console.log('fetched quote get')
+
+    });
+
     console.log("sidebar init");
     zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers','2016 units'];
     //document.getElementById('').appendChild(makeCheckBoxList(zipCodeDataColumnList,zipCodeFusionTableDataGroup));
@@ -31,7 +58,7 @@ function initSidebar(){
 
 function colorLayer(selectElement,layer){
     console.log(selectElement.value);
-    selectElement.value;
+
     applyPolygonStyle(map, layer, selectElement.value);
     updateLegend(selectElement.value);
 }
