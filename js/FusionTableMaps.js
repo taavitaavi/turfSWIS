@@ -5,7 +5,7 @@
 var map = null;
 var ZIPLayer=null;
 var HighSchoolDistrictLayer=null;
-var MiddleSchoolDistrictLayer=null;
+var MiddleSchoolDistrictLayer= null;
 var ElemetarySchoolDistrictLayer=null;
 var CountyLayer= null;
 var PlacesLayer=null;
@@ -24,6 +24,13 @@ function Get(yourUrl){
     Httpreq.send(null);
     return Httpreq.responseText;
 }
+
+function Post(yourUrl) {
+    var Httpreq = new XMLHttpRequest(); // a new request
+    Httpreq.open("POST",yourUrl,false);
+    Httpreq.send(null);
+    return Httpreq.responseText;
+}
 function formatParams( params ){
     return "?" + Object
             .keys(params)
@@ -32,17 +39,49 @@ function formatParams( params ){
             })
             .join("&")
 }
+function sendSelectionToMongoDB(){
+
+
+    console.log("geometry:");
+
+    var polygonBounds= TerritoryLayer.getPath();
+
+    console.log("PolygonPath");
+    var LNGLATS=[];
+    polygonBounds.forEach(function(xy) {
+        LNGLATS.push([xy.lng(),xy.lat()]);
+    });
+    //close loop
+    LNGLATS.push(LNGLATS[0]);
+    console.log("TerritoryPolygon: "+LNGLATS);
+    var params = {turfBoundaries: JSON.stringify(LNGLATS)};
+    var yourUrl='/ND_MS';
+    var url = yourUrl + formatParams(params);
+    console.log('getting json object');
+    console.log(url);
+    var json_obj = JSON.parse(Get(url));
+    console.log(json_obj);
+
+    console.log('fetched quote get')
+    return url;
+
+
+}
+
+function sendDataToFusionTables() {
+    //https://www.googleapis.com/fusiontables/v2/query?sql=UPDATE 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 SET Who is working = Taavi * WHERE ROWID = Minot, ND&key=AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc
+    var params = {sql: "UPDATE 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 SET \"Who is working\" = \"Taavi\" * WHERE ROWID = \"Minot, ND\"",
+        key:"AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc"
+    };
+    var url ='https://www.googleapis.com/fusiontables/v2/query';
+    url = url + formatParams(params);
+    Post(url)
+}
 
 function initSidebar(){
-    var update = document.getElementById('update')
+    var update = document.getElementById('update');
     update.addEventListener('click', function () {
-        var params = {name: "Darth Vader"};
-        var yourUrl='/quotes';
-        var url = yourUrl + formatParams(params);
-        console.log('getting json object');
-        var json_obj = JSON.parse(Get(url));
-        console.log(json_obj);
-        console.log('fetched quote get')
+     sendSelectionToMongoDB();
 
     });
 
@@ -369,6 +408,33 @@ function buildPolygonWhere(fusionTablecolumn,polygon){
 
 }
 
+function initSchoolLayer(schoolLayer) {
+    console.log('initschoolLayer');
+    var infoWindow = new google.maps.InfoWindow();
+    MiddleSchoolDistrictLayer= new google.maps.Data();
+    var geojson=sendSelectionToMongoDB();
+    //geojson=JSON.stringify(geojson);
+    console.log(geojson);
+    //'geojson/ND_middleschools.geojson'
+    MiddleSchoolDistrictLayer.loadGeoJson('http://prep.swturf.eu/ND_MS?turfBoundaries=[[-102.1686378,45.4498756],[-96.1686378,45.4498756],[-96.1686378,49.4498756],[-102.1686378,49.4498756],[-102.1686378,45.4498756]]');
+    MiddleSchoolDistrictLayer.setStyle({
+        strokeColor: 'red',
+        msoSchemeFillColor:'red',
+        strokeWeight: 1
+    });
+    schoolDistrictColumnArray=["schnam", "gslo", "gshi","stAbbrev"];
+    google.maps.event.addListener(MiddleSchoolDistrictLayer, 'click', function(e) {
+        windowControl(e, infoWindow, map,'SchoolDistrictLayer',schoolDistrictColumnArray);
+    });
+    MiddleSchoolDistrictLayer.addListener('mouseover', function(event) {
+        MiddleSchoolDistrictLayer.revertStyle();
+        MiddleSchoolDistrictLayer.overrideStyle(event.feature, {strokeWeight: 3});
+    });
+    MiddleSchoolDistrictLayer.addListener('mouseout', function(event) {
+        MiddleSchoolDistrictLayer.revertStyle();
+    });
+
+}
 function initMap() {
     //keep uppercase copy of selected territories
 
@@ -376,6 +442,8 @@ function initMap() {
         center: {lat: 47.4498756, lng: -99.1686378},
         zoom: 7
     });
+
+
 
     var center=map.getCenter();
     addLegend(map);
@@ -404,7 +472,9 @@ function initMap() {
     google.maps.event.addListener(TerritoryLayer, 'click', function (event) {
         console.log('Polygonclick')
     });
-
+    var infoWindow = new google.maps.InfoWindow();
+    MiddleSchoolDistrictLayer= new google.maps.Data();
+    initSchoolLayer(MiddleSchoolDistrictLayer);
 
 /*
      fusionTableColumn="State-County".toUpperCase();
@@ -413,7 +483,7 @@ function initMap() {
     var whereClause=buildPolygonWhere('geometry',TerritoryLayer);
 
 
-    var infoWindow = new google.maps.InfoWindow();
+
     //where: whereClause
     //19Ias72RSspPU6PIGNGwySEno7uiFvKuZ3shUfO3r
     ZIPLayer = new google.maps.FusionTablesLayer({
@@ -476,8 +546,9 @@ function initMap() {
     HighSchoolDistrictLayer.addListener('mouseout', function(event) {
         HighSchoolDistrictLayer.revertStyle();
     });
-
-    MiddleSchoolDistrictLayer= new google.maps.Data();
+    //initSchoolLayer(schoolLayer);
+    //MiddleSchoolDistrictLayer= new google.maps.Data();
+/*
     MiddleSchoolDistrictLayer.loadGeoJson('geojson/ND_middleschools.geojson');
     MiddleSchoolDistrictLayer.setStyle({
         strokeColor: 'red',
@@ -494,7 +565,7 @@ function initMap() {
     });
     MiddleSchoolDistrictLayer.addListener('mouseout', function(event) {
         MiddleSchoolDistrictLayer.revertStyle();
-    });
+    });*/
 
     ElementarySchoolDistrictLayer= new google.maps.Data();
     ElementarySchoolDistrictLayer.loadGeoJson('geojson/ND_elementaryschools.geojson');
