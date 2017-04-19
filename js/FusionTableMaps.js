@@ -69,15 +69,19 @@ function downloadPlacesInfoToExcel(){
 
 
 }
+function downloadHighschoolDistrictBoundaries(database){
+    console.log('Downloading school district boundaries')
+}
 function downloadSchoolsInfoToExcel() {
     var url ='https://www.googleapis.com/fusiontables/v2/query';
     var schoolsChekedboxes=getCheckedBoxes(schoolsFusionTableDataGroup);
+    var whereClause=buildPolygonWhere('\'Street Address, City, State\'',TerritoryLayer);
     console.log('\''+schoolsChekedboxes.join('\',\'')+'\'');
     var schoolsColumnsToDownload='\''+schoolsChekedboxes.join('\',\'')+'\'';
     //getSchools
     console.log('downloading schoolsinfo')
     var schoolsParams={
-        sql:'SELECT * FROM 1erkFcYkJgIXe1efAtMzEMHF9o1f0POrt4di3PffB WHERE '+schoolsLayerWhereClause,
+        sql:'SELECT * FROM 1erkFcYkJgIXe1efAtMzEMHF9o1f0POrt4di3PffB WHERE '+whereClause,
         key:'AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc'
     }
     var schoolsqueryurl=url+formatParams(schoolsParams);
@@ -132,7 +136,7 @@ function exportToCsv(filename, rows) {
 
 function initSidebar(){
     console.log("sidebar init");
-    zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2016 units','2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers'];
+    zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2016 units','2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers','Population Density','Family density','1 year units per households with children','2 year units per households with children','3 year units per households with children'];
     //document.getElementById('').appendChild(makeCheckBoxList(zipCodeDataColumnList,zipCodeFusionTableDataGroup));
     document.getElementById('fusionTableColumns').appendChild(makeCheckBoxList(zipCodeDataColumnList,'fusionTableColumns',zipCodeFusionTableDataGroup));
 
@@ -172,7 +176,7 @@ var COLUMN_STYLES = {
         {
             'min': 60000,
             'max': 13000000,
-            'color': '#0d77ff'
+            'color': '#172cff'
         }
     ],
     'population':[
@@ -201,6 +205,442 @@ var COLUMN_STYLES = {
             'max': 500000,
             'color': '#1fff70'
         }
+
+    ],
+    'households with children':[
+{
+    'min': 0,
+    'max': 100,
+    'color': '#3a004c'
+},
+{
+    'min': 100,
+    'max': 250,
+    'color': '#ff5e30'
+},
+{
+    'min': 250,
+    'max': 500,
+    'color': '#ff35c3'
+},
+{
+    'min': 500,
+    'max': 1000,
+    'color': '#6184ff'
+},
+        {
+            'min': 1000,
+            'max': 2000,
+            'color': '#2fffe5'
+        },
+{
+    'min': 2000,
+    'max': 5000000,
+    'color': '#ff0536'
+},
+
+],
+    'Population Density':[
+        {
+            'min': 0,
+            'max': 10,
+            'color': '#454545'
+        },
+        {
+            'min': 10,
+            'max': 100,
+            'color': '#5ff8ff'
+        },
+        {
+            'min': 100,
+            'max': 1000,
+            'color': '#ff35c3'
+        },
+        {
+            'min': 1000,
+            'max': 500000,
+            'color': '#83ff64'
+        },
+        {
+            'min': 50000,
+            'max': 50000000,
+            'color': '#ff2427'
+        }
+
+    ],
+    'Family density':[
+        {
+            'min': 0,
+            'max': 10,
+            'color': '#454545'
+        },
+        {
+            'min': 10,
+            'max': 100,
+            'color': '#5ff8ff'
+        },
+        {
+            'min': 100,
+            'max': 1000,
+            'color': '#ff35c3'
+        },
+        {
+            'min': 1000,
+            'max': 500000,
+            'color': '#83ff64'
+        },
+        {
+            'min': 50000,
+            'max': 50000000,
+            'color': '#ff2427'
+        }
+
+    ],
+    'white%':[
+        {
+            'min': 0,
+            'max': 25,
+            'color': '#454545'
+        },
+        {
+            'min': 25,
+            'max': 50,
+            'color': '#ff9c40'
+        },
+        {
+            'min': 50,
+            'max': 75,
+            'color': '#ff6231'
+        },
+        {
+            'min': 75,
+            'max': 101,
+            'color': '#fefcff'
+        }
+
+    ],
+    'black%':[
+        {
+            'min': 0,
+            'max': 25,
+            'color': '#ffffff'
+        },
+        {
+            'min': 25,
+            'max': 50,
+            'color': '#ff9c40'
+        },
+        {
+            'min': 50,
+            'max': 75,
+            'color': '#ff6231'
+        },
+        {
+            'min': 75,
+            'max': 101,
+            'color': '#2a0014'
+        }
+
+    ],
+    'native%':[
+        {
+            'min': 0,
+            'max': 25,
+            'color': '#ffffff'
+        },
+        {
+            'min': 25,
+            'max': 50,
+            'color': '#adff61'
+        },
+        {
+            'min': 50,
+            'max': 75,
+            'color': '#ffb26a'
+        },
+        {
+            'min': 75,
+            'max': 101,
+            'color': '#ff45fa'
+        }
+
+    ],
+    'hispanic%':[
+        {
+            'min': 0,
+            'max': 25,
+            'color': '#ffffff'
+        },
+        {
+            'min': 25,
+            'max': 50,
+            'color': '#adff61'
+        },
+        {
+            'min': 50,
+            'max': 75,
+            'color': '#ffb26a'
+        },
+        {
+            'min': 75,
+            'max': 101,
+            'color': '#9bfbff'
+        }
+
+    ],
+    'spanish Speak English less than \"very well\" %':[
+        {
+            'min': 0,
+            'max': 25,
+            'color': '#2fff43'
+        },
+        {
+            'min': 25,
+            'max': 50,
+            'color': '#85f9ff'
+        },
+        {
+            'min': 50,
+            'max': 75,
+            'color': '#ffb26a'
+        },
+        {
+            'min': 75,
+            'max': 101,
+            'color': '#ff43e9'
+        }
+
+    ],
+    'children %':[
+        {
+            'min': 0,
+            'max': 0.25,
+            'color': '#747474'
+        },
+        {
+            'min': 0.25,
+            'max': 0.50,
+            'color': '#85f9ff'
+        },
+        {
+            'min': 0.50,
+            'max': 0.75,
+            'color': '#99ff98'
+        },
+        {
+            'min': 0.75,
+            'max': 101,
+            'color': '#ff6b92'
+        }
+
+    ],
+    '2014 units':[
+        {
+            'min': 0,
+            'max': 500,
+            'color': '#d6a256'
+        },
+        {
+            'min': 500,
+            'max': 1000,
+            'color': '#ffff00'
+        },
+        {
+            'min': 1000,
+            'max': 1500,
+            'color': '#00ffff'
+        },
+        {
+            'min': 1500,
+            'max': 2000,
+            'color': '#0000ff'
+        },
+        {
+            'min': 2000,
+            'max': 4000,
+            'color': '#28ff3b'
+        },
+        {
+            'min': 4000,
+            'max': 200000,
+            'color': '#d037ff'
+        }
+
+
+    ],
+    '2015 units':[
+        {
+            'min': 0,
+            'max': 500,
+            'color': '#d6a256'
+        },
+        {
+            'min': 500,
+            'max': 1000,
+            'color': '#ffff00'
+        },
+        {
+            'min': 1000,
+            'max': 1500,
+            'color': '#00ffff'
+        },
+        {
+            'min': 1500,
+            'max': 2000,
+            'color': '#0000ff'
+        },
+        {
+            'min': 2000,
+            'max': 4000,
+            'color': '#28ff3b'
+        },
+        {
+            'min': 4000,
+            'max': 200000,
+            'color': '#d037ff'
+        }
+
+
+    ],
+    '2016 units':[
+        {
+            'min': 0,
+            'max': 500,
+            'color': '#d6a256'
+        },
+        {
+            'min': 500,
+            'max': 1000,
+            'color': '#ffff00'
+        },
+        {
+            'min': 1000,
+            'max': 1500,
+            'color': '#00ffff'
+        },
+        {
+            'min': 1500,
+            'max': 2000,
+            'color': '#0000ff'
+        },
+        {
+            'min': 2000,
+            'max': 4000,
+            'color': '#28ff3b'
+        },
+        {
+            'min': 4000,
+            'max': 200000,
+            'color': '#d037ff'
+        }
+
+
+    ],
+    '1 year units per households with children':[
+        {
+            'min': 0,
+            'max': 0.3,
+            'color': '#51d630'
+        },
+        {
+            'min': 0.3,
+            'max': 0.6,
+            'color': '#ffabd0'
+        },
+        {
+            'min': 0.6,
+            'max': 0.9,
+            'color': '#00ffff'
+        },
+        {
+            'min': 0.9,
+            'max': 1.2,
+            'color': '#0000ff'
+        },
+        {
+            'min': 1.2,
+            'max': 50,
+            'color': '#59a1ff'
+        }
+
+
+
+    ],
+    '2 year units per households with children':[
+        {
+            'min': 0,
+            'max': 0.3,
+            'color': '#51d630'
+        },
+        {
+            'min': 0.3,
+            'max': 0.6,
+            'color': '#ffabd0'
+        },
+        {
+            'min': 0.6,
+            'max': 0.9,
+            'color': '#00ffff'
+        },
+        {
+            'min': 0.9,
+            'max': 1.2,
+            'color': '#0000ff'
+        },
+        {
+            'min': 1.2,
+            'max': 50,
+            'color': '#3bb5ff'
+        }
+
+
+
+    ],
+    '3 year units per households with children':[
+        {
+            'min': 0,
+            'max': 0.3,
+            'color': '#51d630'
+        },
+        {
+            'min': 0.3,
+            'max': 0.6,
+            'color': '#ffabd0'
+        },
+        {
+            'min': 0.6,
+            'max': 0.9,
+            'color': '#00ffff'
+        },
+        {
+            'min': 0.9,
+            'max': 1.2,
+            'color': '#7b8eff'
+        },
+        {
+            'min': 1.2,
+            'max': 1.5,
+            'color': '#3bb5ff'
+        }
+        ,
+        {
+            'min': 1.5,
+            'max': 1.8,
+            'color': '#ff08f7'
+        },
+        {
+            'min': 1.8,
+            'max':3,
+            'color': '#ff4b6b'
+        },
+        {
+            'min': 3,
+            'max':20,
+            'color': '#3a004c'
+        }
+
+
+
 
     ],
     'Total population':[
@@ -631,7 +1071,7 @@ function initMap() {
     ZIPLayer = new google.maps.FusionTablesLayer({
         query: {
             select: 'geometry',
-            from: '1G_ZgBLUpZvL9riid44RvVkKyJpdF9rGeyDB1d8aW',
+            from: '1Eus1YAng8djJ2Jpva1pj5-l0cApi_t7qkhtx_FdH',
             where: whereClause
         },
         map: map,
@@ -753,7 +1193,7 @@ function updateZipLayer(){
     ZIPLayer.setOptions({
         query: {
             select: 'geometry',
-            from: '1G_ZgBLUpZvL9riid44RvVkKyJpdF9rGeyDB1d8aW',
+            from: '1Eus1YAng8djJ2Jpva1pj5-l0cApi_t7qkhtx_FdH',
             where: whereClause
         }
     });
@@ -850,7 +1290,9 @@ function getInfo (e, layer, infoToGet) {
     switch (layer) {
         case 'ZipLayer':
             //console.log('layer is ziplayer');
+            console.log(infoToGet,e.row[infoToGet].value)
             info = e.row[infoToGet].value;
+
             break;
         case 'CountyLayer':
             info = e.row[infoToGet].value;
@@ -865,10 +1307,7 @@ function getSchoolEnrollment(ncessch){
 //'﻿NCES School ID'
     //"ncessch": "010000500871", "schnam": "ALBERTVILLE HIGH SCH"
     var url ='https://www.googleapis.com/fusiontables/v2/query';
-    var schoolsChekedboxes=getCheckedBoxes(schoolsFusionTableDataGroup);
-    console.log('\''+schoolsChekedboxes.join('\',\'')+'\'');
-    var schoolsColumnsToDownload='\''+schoolsChekedboxes.join('\',\'')+'\'';
-    //getSchools
+
     //getting students count
     var schoolsParams={
         sql:'SELECT Students FROM 17FUnsz-S_NJuY--a-xOBSjHwwoB_t6ZWOEoy7jye WHERE \'﻿NCES School ID\'='+ncessch,
