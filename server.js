@@ -14,8 +14,8 @@ MongoClient.connect('mongodb://mongodb_oXf:7D9SHU2BHbsNbw3ahnypzPD52Wc3d37Q@virt
         if (err) return console.log(err)
         db = database;
 
-        app.listen(3007,function(){
-                console.log('listening on 3007');
+        app.listen(3009,function(){
+                console.log('listening on 3009');
                 });
 });
 
@@ -54,56 +54,65 @@ app.get('/', (req, res) => {
 app.post('/quotes', (req, res) => {
     console.log('received quotes post request')
 })
+function getSchoolsFromDatabase(database,req,res) {
+    console.log('getting info from: ',database);
+    var url_parts = url.parse(req.url, true);
+    var query = url_parts.query;
+    console.log(query.turfBoundaries);
+    var boundaries=[];
+    var obj=JSON.parse(query.turfBoundaries);
+    //console.log(obj[0]);
 
-app.get('/ND_MS', (req, res) => {
-        console.log('got /ND_MS  get request')
-     var url_parts = url.parse(req.url, true);
-     var query = url_parts.query;
-     console.log(query.turfBoundaries);
-     var boundaries=[];
-     var obj=JSON.parse(query.turfBoundaries);
-     console.log(obj[0]);
-	
-     for (i = 0; i < obj.length; i++) { 
-	var lng=obj[i][0];
-	var lat=obj[i][1];
-	var lnglat=[lng,lat];
-	console.log(lnglat);
+    for (i = 0; i < obj.length; i++) {
+        var lng=obj[i][0];
+        var lat=obj[i][1];
+        var lnglat=[lng,lat];
+        console.log(lnglat);
         boundaries.push(lnglat)
-}
+    }
 
-    var geojsonPoly = { 
-    type: 'Polygon', 
-    coordinates: [boundaries] 
-};
-	var queryresult={ "type": "FeatureCollection",
-"crs": { "type": "name", "properties": { "name": 
-"urn:ogc:def:crs:OGC:1.3:CRS84" } }};
+    var geojsonPoly = {
+        type: 'Polygon',
+        coordinates: [boundaries]
+    };
+    var queryresult={ "type": "FeatureCollection",
+        "crs": { "type": "name", "properties": { "name":
+            "urn:ogc:def:crs:OGC:1.3:CRS84" } }};
 
     console.log(geojsonPoly);
-db.collection('ND_MS').find( { geometry :
-                  { $geoWithin :
-                    { $geometry : geojsonPoly } } }, { _id: 0 } ).toArray((err,
+    db.collection(database).find( { geometry :
+        { $geoWithin :
+            { $geometry : geojsonPoly } } }, { _id: 0 } ).toArray((err,
         result) => {
         if (err) return console.log(err)
         console.log('resulting ');
-        console.log(result); 
-	queryresult.features=result;
+    //console.log(result);
+    queryresult.features=result;
 
-       res.send(queryresult)
-  });
-         
-/*
-db.collection('ND_MS').find().toArray((err,
-	result) => {
-        if (err) return console.log(err)
-        console.log('resulting ');
-        console.log(result);
-	db.close();
-       // res.send({quotes:result})
-  })
-*/
+    res.send(queryresult)
+});
 
+}
+
+app.get('/ND_MS', (req, res) => {
+        console.log('got /ND_MS  get request');
+    getSchoolsFromDatabase('ND_MS',req,res);
 
 });
 
+app.get('/US_HS', (req, res) => {
+    console.log('got /US_HS  get request');
+getSchoolsFromDatabase('US_HS',req,res);
+
+});
+app.get('/US_MS', (req, res) => {
+    console.log('got /US_MS  get request');
+getSchoolsFromDatabase('US_MS',req,res);
+
+});
+
+app.get('/US_EL', (req, res) => {
+    console.log('got /US_EL  get request');
+getSchoolsFromDatabase('US_EL',req,res);
+
+});

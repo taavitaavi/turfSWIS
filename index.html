@@ -14,12 +14,7 @@
     <div id="map" class="gmap"></div>
 
     <div id="sidebar">
-	<div>
- 	 <h2>Replace last quote written by Master Yoda with a quote written by 
-		Darth Vadar</h2>
-  	<button id="update"> Darth Vadar invades! </button>
 
-	</div>
         <form id="Layers">
 
 
@@ -30,7 +25,8 @@
 
                 </div>
                 <div id="TerritoryLayerList" class="elements">
-                    <button type="button" onclick="updateLayers()">SaveTerritory</button>
+                    <button type="button" onclick="updateLayers()">Update Map Layers</button>
+                    <button type="button" onclick="downloadInfoToExcel()">Download info</button>
 
 
                 </div>
@@ -67,7 +63,16 @@
                 </div>
             </div>
 
+           <div>
+                <p><input type="checkbox" id="SchoolsLayerCheckbox" onchange='layerCheckBoxlistener(this,SchoolsLayer)' name="LayerBox"/>Schools</p>
+                <div id="Layer10" class="label">
+                    <p>&#x21C5</p>
+                </div>
+                <div id="SchoolsElements" class="elements">
 
+
+                </div>
+            </div>
             <div>
 
                 <p><input type="checkbox" onchange='layerCheckBoxlistener(this,HighSchoolDistrictLayer)' name="LayerBox"/>High School Districts</p>
@@ -121,7 +126,7 @@
             </div>
             <div>
                 <p><input type="checkbox" id="HQLayerCheckbox" onchange='layerCheckBoxlistener(this,HQLayer)' name="LayerBox"/>Headquarters</p>
-                <div id="Layer8" class="label">
+                <div id="Layer9" class="label">
                     <p>&#x21C5</p>
                 </div>
                 <div id="HQElements" class="elements">

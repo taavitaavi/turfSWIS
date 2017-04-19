@@ -6,7 +6,9 @@ var map = null;
 var ZIPLayer=null;
 var HighSchoolDistrictLayer=null;
 var MiddleSchoolDistrictLayer= null;
+var SchoolsLayer=null;
 var ElemetarySchoolDistrictLayer=null;
+
 var CountyLayer= null;
 var PlacesLayer=null;
 var HQLayer=null;
@@ -15,10 +17,13 @@ var PermitsLayer=null;
 var geoJson;
 var zipCodeFusionTableDataGroup="zipcodeTableDataCheckboxGroup";
 var placesFusionTableDataGroup='placesTableDataCheckboxGroup';
+var schoolsFusionTableDataGroup='schoolsTableDataCheckboxGroup';
 var HQFusionTableDataGroup='HQTableDataCheckboxGroup';
 var permitsFusionTableDataGroup='permitsTableDataCheckboxGroup';
 var selectedCounties=["ND-Divide", "ND-Burke", "ND-Renville", "ND-Bottineau", "ND-Rolette", "ND-Towner", "ND-Cavalier", "ND-Pembina", "MN-Kittson", "MN-Roseau", "MN-Marshall", "MN-Pennington", "MN-Red Lake", "MN-Polk", "ND-Grand Forks", "ND-Walsh", "ND-Ramsey", "ND-Nelson", "ND-Steele", "ND-Traill", "ND-Cass", "ND-Richland", "MN-Wilkin", "MN-Clay", "MN-Norman", "ND-Sargent", "ND-Ransom", "ND-Barnes", "ND-Griggs", "ND-Eddy", "ND-Benson", "ND-Pierce", "ND-McHenry", "ND-Ward", "ND-Mountrail", "ND-Williams", "ND-McKenzie", "ND-Billings", "ND-Golden Valley", "ND-Dunn", "ND-Mercer", "ND-McLean", "ND-Sheridan", "ND-Wells", "ND-Foster", "ND-Stutsman", "ND-Kidder", "ND-Burleigh", "ND-Oliver", "ND-Morton", "ND-Stark", "ND-Slope", "ND-Hettinger", "ND-Grant", "ND-Adams", "ND-Bowman", "ND-Sioux", "ND-Emmons", "ND-Logan", "ND-McIntosh", "ND-Dickey", "ND-LaMoure"];
 var SELECTEDCOUNTIES=[];
+var placesLayerWhereClause="";
+var schoolsLayerWhereClause="";
 
 function Get(yourUrl){
     var Httpreq = new XMLHttpRequest(); // a new request
@@ -33,6 +38,74 @@ function Post(yourUrl) {
     Httpreq.send(null);
     return Httpreq.responseText;
 }
+function downloadInfoToExcel(){
+    console.log('downloading info');
+
+    //get cities
+    var placesParams={
+        sql:'SELECT * FROM 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 WHERE '+placesLayerWhereClause,
+        key:'AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc'
+    }
+    var url ='https://www.googleapis.com/fusiontables/v2/query';
+    var placesqueryurl=url+formatParams(placesParams);
+    //console.log(JSON.parse(Get(url)));
+    var placesjson=JSON.parse(Get(placesqueryurl));
+    placesjson.rows.unshift(placesjson.columns);
+    exportToCsv('places.csv',placesjson.rows);
+
+    //getSchools
+    console.log('downloading schoolsinfo')
+    var schoolsParams={
+        sql:'SELECT * FROM 1erkFcYkJgIXe1efAtMzEMHF9o1f0POrt4di3PffB WHERE '+schoolsLayerWhereClause,
+        key:'AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc'
+    }
+    var schoolsqueryurl=url+formatParams(schoolsParams);
+    var schoolsjson=JSON.parse(Get(schoolsqueryurl));
+    schoolsjson.rows.unshift(schoolsjson.columns);
+    exportToCsv('schools.csv',schoolsjson.rows);
+}
+function exportToCsv(filename, rows) {
+    var processRow = function (row) {
+        var finalVal = '';
+        for (var j = 0; j < row.length; j++) {
+            var innerValue = row[j] === null ? '' : row[j].toString();
+            if (row[j] instanceof Date) {
+                innerValue = row[j].toLocaleString();
+            };
+            var result = innerValue.replace(/"/g, '""');
+            if (result.search(/("|,|\n)/g) >= 0)
+                result = '"' + result + '"';
+            if (j > 0)
+                finalVal += ',';
+            finalVal += result;
+        }
+        return finalVal + '\n';
+    };
+
+    var csvFile = '';
+    for (var i = 0; i < rows.length; i++) {
+        csvFile += processRow(rows[i]);
+    }
+
+    var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, filename);
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
+
 function formatParams( params ){
     return "?" + Object
             .keys(params)
@@ -54,12 +127,6 @@ function sendDataToFusionTables() {
 }
 
 function initSidebar(){
-    var update = document.getElementById('update');
-    update.addEventListener('click', function () {
-     sendSelectionToMongoDB();
-
-    });
-
     console.log("sidebar init");
     zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2016 units','2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers'];
     //document.getElementById('').appendChild(makeCheckBoxList(zipCodeDataColumnList,zipCodeFusionTableDataGroup));
@@ -69,8 +136,10 @@ function initSidebar(){
     document.getElementById('placesElements').appendChild(makeCheckBoxList(placesDataColumnList,'placesElements',placesFusionTableDataGroup));
     HQDataColumnList=['First Name','Last Name','Street Address','City','State','Phone','Email','Information'];
     document.getElementById('HQElements').appendChild(makeCheckBoxList(HQDataColumnList,'HQElements',HQFusionTableDataGroup));
+    schoolsDataColumnList=['NCES School ID','Low Grade*','High Grade*','School Name','District','County Name*','Street Address, City, State','Phone','School Level','Charter','Magnet*','Title I School*','Students*','Teachers*','Student Teacher Ratio*','Free Lunch*', 'Website:'];
+    document.getElementById('SchoolsElements').appendChild(makeCheckBoxList(schoolsDataColumnList,'SchoolsElements',schoolsFusionTableDataGroup));
     collapseLayers();
-}
+};
 
 function colorLayer(selectElement,layer){
     console.log(selectElement.value);
@@ -163,7 +232,30 @@ var COLUMN_STYLES = {
             'color': '#ff9d00'
         }
 
+    ],
+    'High Grade*':[
+        {
+            'min': 1,
+            'max': 6,
+            'iconName':'small_purple',
+            'color': '#ff98ff'
+
+        },
+        {
+            'min': 6,
+            'max': 9,
+            'iconName': 'small_green',
+            'color': '#8fea8f'
+        },
+        {
+            'min': 9,
+            'max': 13,
+            'iconName': 'orange_blank',
+            'color': '#ff9d00'
+        }
+
     ]
+
 
 };
 // Apply the style to the layer & generate corresponding legend
@@ -174,7 +266,7 @@ function applyPolygonStyle(map, layer, column) {
     for (var i in columnStyle) {
         var style = columnStyle[i];
         styles.push({
-            where: generateStyleWhere(column, style.min, style.max),
+            where: generatePlacesLayerStyleWhere(column, style.min, style.max),
             polygonOptions: {
                 fillColor: style.color,
                 fillOpacity: style.opacity ? style.opacity : 0.3
@@ -186,25 +278,28 @@ function applyPolygonStyle(map, layer, column) {
     layer.set('styles', styles);
 }
 // Apply the style to the layer & generate corresponding legend
-function applyMarkerStyle(map, layer, column) {
+function applyPlacesLayerMarkerStyle(map, layer, column) {
     var columnStyle = COLUMN_STYLES[column];
     var styles = [];
 
     for (var i in columnStyle) {
         var style = columnStyle[i];
         styles.push({
-            where: generateStyleWhere(column, style.min, style.max),
+            where: generatePlacesLayerStyleWhere(column, style.min, style.max),
             markerOptions: {
                 iconName: style.iconName
             }
 
         });
     }
-
+    console.log(styles);
     layer.set('styles', styles);
 }
+
+
+
 // Create the where clause
-function generateStyleWhere(columnName, low, high) {
+function generatePlacesLayerStyleWhere(columnName, low, high) {
     var whereClause = [];
     whereClause.push("'");
     whereClause.push(columnName);
@@ -214,7 +309,7 @@ function generateStyleWhere(columnName, low, high) {
     whereClause.push(columnName);
     whereClause.push("' < ");
     whereClause.push(high);
-    console.log('styling whereclause: '+whereClause);
+    console.log('places layer styling whereclause: '+whereClause.join(''));
     return whereClause.join('');
 }
 
@@ -292,9 +387,6 @@ function updateTextInput() {
 
     updatePlacesLayer(PlacesLayer, 'Place, State Abbreviation')
 }
-function updateSliderValue(val,sliderID) {
-    document.getElementById(sliderID).value=val;
-}
 
 function collapseLayers(){
     var elements = document.getElementsByTagName("div");
@@ -365,12 +457,7 @@ function switchDisplay() {
 
 //////////Initializing map
 
-function arrayToUPPERCASE(array){
-    for(var i = 0; i < array.length; i++){
-        array[i] = array[i].toUpperCase();
-    }
-    return array
-}
+
 function buildPolygonWhere(fusionTablecolumn,polygon){
     var whereClause='ST_INTERSECTS('+fusionTablecolumn+', '+'POLYGON(';
     var polygonBounds= polygon.getPath();
@@ -407,15 +494,15 @@ function sendSelectionToMongoDB(database){
 
 
 }
-function initMiddleSchoolLayer() {
+function initMiddleSchoolDistrictLayer() {
     console.log('initschoolLayer');
     var infoWindow = new google.maps.InfoWindow();
     MiddleSchoolDistrictLayer= new google.maps.Data();
-    var url=sendSelectionToMongoDB('ND_MS');
+    var url=sendSelectionToMongoDB('US_MS');
     console.log(url);
 
     // MiddleSchoolDistrictLayer.loadGeoJson('http://prep.swturf.eu/ND_MS?turfBoundaries=[[-102.1686378,45.4498756],[-96.1686378,45.4498756],[-96.1686378,49.4498756],[-102.1686378,49.4498756],[-102.1686378,45.4498756]]');
-    MiddleSchoolDistrictLayer.loadGeoJson(url)
+    MiddleSchoolDistrictLayer.loadGeoJson(url);
     MiddleSchoolDistrictLayer.setStyle({
         strokeColor: 'red',
         msoSchemeFillColor:'red',
@@ -432,6 +519,58 @@ function initMiddleSchoolLayer() {
     MiddleSchoolDistrictLayer.addListener('mouseout', function(event) {
         MiddleSchoolDistrictLayer.revertStyle();
     });
+
+}
+
+function initHighSchoolDistrictLayer(){
+    console.log("initHighSchoolDistrictLayer")
+    var infoWindow = new google.maps.InfoWindow();
+    HighSchoolDistrictLayer= new google.maps.Data();
+    var url=sendSelectionToMongoDB('US_HS');
+    console.log(url);
+    //'geojson/ND_highschools.geojson'
+    HighSchoolDistrictLayer.loadGeoJson(url);
+    HighSchoolDistrictLayer.setStyle({
+        strokeColor: 'red',
+        msoSchemeFillColor:'red',
+        strokeWeight: 1
+    });
+    schoolDistrictColumnArray=["schnam", "gslo", "gshi","stAbbrev"];
+    google.maps.event.addListener(HighSchoolDistrictLayer, 'click', function(e) {
+        windowControl(e, infoWindow, map,'SchoolDistrictLayer',schoolDistrictColumnArray);
+    });
+    HighSchoolDistrictLayer.addListener('mouseover', function(event) {
+        HighSchoolDistrictLayer.revertStyle();
+        HighSchoolDistrictLayer.overrideStyle(event.feature, {strokeWeight: 3});
+    });
+    HighSchoolDistrictLayer.addListener('mouseout', function(event) {
+        HighSchoolDistrictLayer.revertStyle();
+    });
+}
+function initElementarySchoolDistrictLayer(){
+    console.log("initElementarySchoolDistrictLayer")
+    var infoWindow = new google.maps.InfoWindow();
+    ElemetarySchoolDistrictLayerr= new google.maps.Data();
+    var url=sendSelectionToMongoDB('US_EL');
+    console.log(url);
+    ElementarySchoolDistrictLayer.loadGeoJson(url);
+    ElementarySchoolDistrictLayer.setStyle({
+        strokeColor: 'red',
+        msoSchemeFillColor:'red',
+        strokeWeight: 1
+    });
+    schoolDistrictColumnArray=["schnam", "gslo", "gshi","stAbbrev"];
+    google.maps.event.addListener(ElementarySchoolDistrictLayer, 'click', function(e) {
+        windowControl(e, infoWindow, map,'SchoolDistrictLayer',schoolDistrictColumnArray);
+    });
+    ElementarySchoolDistrictLayer.addListener('mouseover', function(event) {
+        ElementarySchoolDistrictLayer.revertStyle();
+        ElementarySchoolDistrictLayer.overrideStyle(event.feature, {strokeWeight: 3});
+    });
+    ElementarySchoolDistrictLayer.addListener('mouseout', function(event) {
+        ElementarySchoolDistrictLayer.revertStyle();
+    });
+
 
 }
 function initMap() {
@@ -473,16 +612,14 @@ function initMap() {
     });
     var infoWindow = new google.maps.InfoWindow();
     MiddleSchoolDistrictLayer= new google.maps.Data();
-    initMiddleSchoolLayer();
+    initMiddleSchoolDistrictLayer();
+    HighSchoolDistrictLayer= new google.maps.Data();
+    initHighSchoolDistrictLayer();
+    ElementarySchoolDistrictLayer= new google.maps.Data();
+    initElementarySchoolDistrictLayer();
 
-/*
-     fusionTableColumn="State-County".toUpperCase();
-    var whereClause= '\''+fusionTableColumn+'\'' +' IN ('+'\''+SELECTEDCOUNTIES.join('\',\'')+'\''+')';
-    console.log("ZipLayer whereclause",whereClause)*/
+
     var whereClause=buildPolygonWhere('geometry',TerritoryLayer);
-
-
-
     //where: whereClause
     //19Ias72RSspPU6PIGNGwySEno7uiFvKuZ3shUfO3r
     ZIPLayer = new google.maps.FusionTablesLayer({
@@ -525,47 +662,27 @@ function initMap() {
         windowControl(e, infoWindow, map,'CountyLayer',countyColumnArray);
     });
 
-
-
-    HighSchoolDistrictLayer= new google.maps.Data();
-    HighSchoolDistrictLayer.loadGeoJson('geojson/ND_highschools.geojson');
-    HighSchoolDistrictLayer.setStyle({
-        strokeColor: 'red',
-        msoSchemeFillColor:'red',
-        strokeWeight: 1
-    });
-    schoolDistrictColumnArray=["schnam", "gslo", "gshi","stAbbrev"];
-    google.maps.event.addListener(HighSchoolDistrictLayer, 'click', function(e) {
-        windowControl(e, infoWindow, map,'SchoolDistrictLayer',schoolDistrictColumnArray);
-    });
-    HighSchoolDistrictLayer.addListener('mouseover', function(event) {
-        HighSchoolDistrictLayer.revertStyle();
-        HighSchoolDistrictLayer.overrideStyle(event.feature, {strokeWeight: 3});
-    });
-    HighSchoolDistrictLayer.addListener('mouseout', function(event) {
-        HighSchoolDistrictLayer.revertStyle();
+    whereClause=buildPolygonWhere('\'Street Address, City, State\'',TerritoryLayer);
+    console.log("SchoolsLayerwhereclause: " +whereClause);
+    SchoolsLayer = new google.maps.FusionTablesLayer({
+        query: {
+            select: 'Street Address, City, State',
+            from: '1erkFcYkJgIXe1efAtMzEMHF9o1f0POrt4di3PffB',
+            where: whereClause
+        },
+        map: map,
+        suppressInfoWindows: true
     });
 
+    disableLayer(document.getElementById('SchoolsLayerCheckbox'),SchoolsLayer);
 
-    ElementarySchoolDistrictLayer= new google.maps.Data();
-    ElementarySchoolDistrictLayer.loadGeoJson('geojson/ND_elementaryschools.geojson');
-    ElementarySchoolDistrictLayer.setStyle({
-        strokeColor: 'red',
-        msoSchemeFillColor:'red',
-        strokeWeight: 1
+
+    google.maps.event.addListener(SchoolsLayer, 'click', function(e) {
+        schoolsCheckedBoxes = getCheckedBoxes(schoolsFusionTableDataGroup);
+        console.log(schoolsCheckedBoxes);
+        windowControl(e, infoWindow, map,'ZipLayer',schoolsCheckedBoxes);
     });
-    schoolDistrictColumnArray=["schnam", "gslo", "gshi","stAbbrev"];
-    google.maps.event.addListener(ElementarySchoolDistrictLayer, 'click', function(e) {
-        windowControl(e, infoWindow, map,'SchoolDistrictLayer',schoolDistrictColumnArray);
-    });
-    ElementarySchoolDistrictLayer.addListener('mouseover', function(event) {
-        ElementarySchoolDistrictLayer.revertStyle();
-        ElementarySchoolDistrictLayer.overrideStyle(event.feature, {strokeWeight: 3});
-    });
-    ElementarySchoolDistrictLayer.addListener('mouseout', function(event) {
-        ElementarySchoolDistrictLayer.revertStyle();
-    });
-    //google.maps.event.addDomListener(window, 'load', initialize)
+
 
     whereClause=buildPolygonWhere('\'Place, State Abbreviation\'',TerritoryLayer);
     console.log("placesLayerwhereClause: " +whereClause);
@@ -603,6 +720,8 @@ function initMap() {
         HQCheckedBoxes = getCheckedBoxes(HQFusionTableDataGroup);
         windowControl(e, infoWindow, map,'ZipLayer',HQCheckedBoxes);
     });
+
+    updateLayers();
 }
 
 
@@ -616,8 +735,10 @@ function updateLayers() {
     console.log('update placesLayer');
     updatePlacesLayer();
     updateHQLayer();
-    initMiddleSchoolLayer();
-
+    initMiddleSchoolDistrictLayer();
+    initHighSchoolDistrictLayer();
+    initElementarySchoolDistrictLayer();
+    updateSchoolsLayer();
 }
 function updateZipLayer(){
 
@@ -669,17 +790,37 @@ function updatePlacesLayer() {
     where.push(whereClause);
     where.push(townSizeFilter);
     where.push(townIncomeFilter);
+    placesLayerWhereClause=where.join(' and ');
 
     console.log(where.join(' and '));
     pointsLayer.setOptions({
         query: {
             select: pointColumn,
             from: '17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5',
-            where: where.join(' and ')
+            where: placesLayerWhereClause
         }
     });
-    applyMarkerStyle(map,pointsLayer,'Total population');
+    applyPlacesLayerMarkerStyle(map,pointsLayer,'Total population');
     updateLegend('Total population');
+}
+function updateSchoolsLayer(){
+    var whereClause=buildPolygonWhere('\'Street Address, City, State\'',TerritoryLayer);
+    schoolsLayerWhereClause=whereClause;
+    console.log("SCHOOLSLayerwhereClause: " +whereClause);
+    pointsLayer=SchoolsLayer;
+
+    pointColumn='Street Address, City, State';
+    pointsLayer.setOptions({
+        query: {
+            select: pointColumn,
+            from: '1erkFcYkJgIXe1efAtMzEMHF9o1f0POrt4di3PffB',
+            where: whereClause
+        }
+    });
+//    applySchoolLayerMarkerStyle(map,pointsLayer,'School Level');
+    applyPlacesLayerMarkerStyle(map,pointsLayer, 'High Grade*')
+    updateLegend('High Grade*');
+
 }
 
 function windowControl(e, infoWindow, map, layer, columnArray) {
@@ -704,7 +845,6 @@ function getInfo (e, layer, infoToGet) {
         case 'ZipLayer':
             //console.log('layer is ziplayer');
             info = e.row[infoToGet].value;
-            console.log(infoToGet,": ",info);
             break;
         case 'CountyLayer':
             info = e.row[infoToGet].value;
@@ -717,8 +857,6 @@ function getInfo (e, layer, infoToGet) {
 };
 function buildInfoContent(e, columnArray,layer) {
     infoContent=document.createElement("div");
-    var units=e.row['2016 units'].value;
-    console.log('2016 units', units);
     for (var column = 0; column < columnArray.length; column++){
 
            try {
@@ -728,7 +866,7 @@ function buildInfoContent(e, columnArray,layer) {
             infoContent.appendChild(document.createElement("br"));
         }
         catch(e){
-            console.log('the property is not available...'); // print into console
+            console.log('the property ',column,' is not available...'); // print into console
         }
     }
     return infoContent;
