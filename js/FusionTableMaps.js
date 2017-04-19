@@ -38,12 +38,26 @@ function Post(yourUrl) {
     Httpreq.send(null);
     return Httpreq.responseText;
 }
-function downloadInfoToExcel(){
-    console.log('downloading info');
 
+
+
+
+function formatParams( params ){
+    return "?" + Object
+            .keys(params)
+            .map(function(key){
+                return key+"="+params[key]
+            })
+            .join("&")
+}
+function downloadPlacesInfoToExcel(){
+    console.log('downloading info');
     //get cities
+    placesCheckedBoxes=getCheckedBoxes(placesFusionTableDataGroup);
+    console.log('\''+placesCheckedBoxes.join('\',\'')+'\'');
+    var columnsToDownload='\''+placesCheckedBoxes.join('\',\'')+'\'';
     var placesParams={
-        sql:'SELECT * FROM 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 WHERE '+placesLayerWhereClause,
+        sql:'SELECT'+columnsToDownload+' FROM 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 WHERE '+placesLayerWhereClause,
         key:'AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc'
     }
     var url ='https://www.googleapis.com/fusiontables/v2/query';
@@ -53,6 +67,13 @@ function downloadInfoToExcel(){
     placesjson.rows.unshift(placesjson.columns);
     exportToCsv('places.csv',placesjson.rows);
 
+
+}
+function downloadSchoolsInfoToExcel() {
+    var url ='https://www.googleapis.com/fusiontables/v2/query';
+    var schoolsChekedboxes=getCheckedBoxes(schoolsFusionTableDataGroup);
+    console.log('\''+schoolsChekedboxes.join('\',\'')+'\'');
+    var schoolsColumnsToDownload='\''+schoolsChekedboxes.join('\',\'')+'\'';
     //getSchools
     console.log('downloading schoolsinfo')
     var schoolsParams={
@@ -60,10 +81,13 @@ function downloadInfoToExcel(){
         key:'AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc'
     }
     var schoolsqueryurl=url+formatParams(schoolsParams);
+    console.log(schoolsqueryurl);
     var schoolsjson=JSON.parse(Get(schoolsqueryurl));
     schoolsjson.rows.unshift(schoolsjson.columns);
     exportToCsv('schools.csv',schoolsjson.rows);
+
 }
+
 function exportToCsv(filename, rows) {
     var processRow = function (row) {
         var finalVal = '';
@@ -106,26 +130,6 @@ function exportToCsv(filename, rows) {
 }
 
 
-function formatParams( params ){
-    return "?" + Object
-            .keys(params)
-            .map(function(key){
-                return key+"="+params[key]
-            })
-            .join("&")
-}
-
-
-function sendDataToFusionTables() {
-    //https://www.googleapis.com/fusiontables/v2/query?sql=UPDATE 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 SET Who is working = Taavi * WHERE ROWID = Minot, ND&key=AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc
-    var params = {sql: "UPDATE 17zSvgPwyPd22sa3kBw9vTPA01C0M8I5fkQqYZdR5 SET \"Who is working\" = \"Taavi\" * WHERE ROWID = \"Minot, ND\"",
-        key:"AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc"
-    };
-    var url ='https://www.googleapis.com/fusiontables/v2/query';
-    url = url + formatParams(params);
-    Post(url)
-}
-
 function initSidebar(){
     console.log("sidebar init");
     zipCodeDataColumnList = ['ZIP', 'state', 'Town', 'County', 'population', 'white%', 'black%', 'native%', 'hispanic%', 'spanish Speak English less than "very well" %', 'household median income', 'households', 'households with children', 'children %', 'Households with own children Under 6 years only', 'Households with own children Under 6 years and 6 to 17 years', 'Households with own children - 6 to 17 years only', '2016 units','2015 units', '2014 units', '2013 units', '2015dealers', '2014 dealers'];
@@ -136,7 +140,7 @@ function initSidebar(){
     document.getElementById('placesElements').appendChild(makeCheckBoxList(placesDataColumnList,'placesElements',placesFusionTableDataGroup));
     HQDataColumnList=['First Name','Last Name','Street Address','City','State','Phone','Email','Information'];
     document.getElementById('HQElements').appendChild(makeCheckBoxList(HQDataColumnList,'HQElements',HQFusionTableDataGroup));
-    schoolsDataColumnList=['NCES School ID','Low Grade*','High Grade*','School Name','District','County Name*','Street Address, City, State','Phone','School Level','Charter','Magnet*','Title I School*','Students*','Teachers*','Student Teacher Ratio*','Free Lunch*', 'Website:'];
+    schoolsDataColumnList=['NCES School ID','Low Grade*','High Grade*','School Name','District','County Name*','Street Address, City, State','Phone','School Level','Charter','Magnet*','Title I School*','Students*','Teachers*','Student Teacher Ratio*','Free Lunch*', 'Website'];
     document.getElementById('SchoolsElements').appendChild(makeCheckBoxList(schoolsDataColumnList,'SchoolsElements',schoolsFusionTableDataGroup));
     collapseLayers();
 };
@@ -573,12 +577,14 @@ function initElementarySchoolDistrictLayer(){
 
 
 }
+
+
 function initMap() {
 
 
      map = new google.maps.Map(document.getElementById('map'), {
-        center: {lat: 47.4498756, lng: -99.1686378},
-        zoom: 7
+        center: {lat: 37.0902, lng: -95.71298},
+        zoom: 4
     });
 
 
@@ -855,6 +861,26 @@ function getInfo (e, layer, infoToGet) {
     }
     return info;
 };
+function getSchoolEnrollment(ncessch){
+//'﻿NCES School ID'
+    //"ncessch": "010000500871", "schnam": "ALBERTVILLE HIGH SCH"
+    var url ='https://www.googleapis.com/fusiontables/v2/query';
+    var schoolsChekedboxes=getCheckedBoxes(schoolsFusionTableDataGroup);
+    console.log('\''+schoolsChekedboxes.join('\',\'')+'\'');
+    var schoolsColumnsToDownload='\''+schoolsChekedboxes.join('\',\'')+'\'';
+    //getSchools
+    //getting students count
+    var schoolsParams={
+        sql:'SELECT Students FROM 17FUnsz-S_NJuY--a-xOBSjHwwoB_t6ZWOEoy7jye WHERE \'﻿NCES School ID\'='+ncessch,
+        key:'AIzaSyBxU4HyG1hKhXu4cQknx6uvJfW1rVuuaNc'
+    }
+    var schoolsqueryurl=url+formatParams(schoolsParams);
+    console.log(schoolsqueryurl);
+    var schoolsjson=JSON.parse(Get(schoolsqueryurl));
+    console.log(schoolsjson);
+    return schoolsjson.rows[0];
+
+}
 function buildInfoContent(e, columnArray,layer) {
     infoContent=document.createElement("div");
     for (var column = 0; column < columnArray.length; column++){
@@ -868,6 +894,17 @@ function buildInfoContent(e, columnArray,layer) {
         catch(e){
             console.log('the property ',column,' is not available...'); // print into console
         }
+
+    }
+    //for school layer we are displaying student count from fusion tables
+    if (layer=='SchoolDistrictLayer'){
+        var ncessh=e.feature.getProperty("ncessch");
+        console.log('ncessh',Number(ncessh));
+        var students = getSchoolEnrollment(ncessh);
+        node= document.createTextNode('Students: '+students);
+        infoContent.appendChild(node);
+        infoContent.appendChild(document.createElement("br"));
+
     }
     return infoContent;
 }
